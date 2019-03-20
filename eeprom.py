@@ -12,7 +12,8 @@ class EEPROMProgrammer(object):
     DATA_BIT_LEN = 8 
     ADDR_BIT_LEN = 10 
 
-    @property def address_pins(self):
+    @property 
+    def address_pins(self):
         return {
             '0': 9,
             '1': 10,
