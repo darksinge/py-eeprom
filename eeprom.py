@@ -73,6 +73,10 @@ class EEPROMProgrammer(object):
         status = 0 if enable else 1  # active low signal
         GPIO.output(self.oe, status)
 
+    def write_enable(self, enable=True):
+        status = 0 if enable else 1 # active low signal
+        GPIO.output(self.we, status)
+
     def pulse_write(self):
         oe_state = self.oe_enabled
         self.output_enable(False)
@@ -169,7 +173,7 @@ def main():
     done = False
     while not done:
         print("Main Menu:")
-        print("\tp) Program EEPROM")
+        print("\tp) Program Address")
         print("\t1) Set Bits")
         print("\t2) Set Address")
         print("\t3) Pulse WE")
@@ -177,7 +181,8 @@ def main():
         print("\t5) Print Current Address")
         print("\to) Print Output")
         print("\ts) Set All")
-        print("\te) Toggle Output Enable")
+        print("\te) {} Output".format("Enable" if not oe else "Disable"))
+        print("\tw) {} Write".format("Disable" if we else "Enable"))
         print("\tq) Quit")
         
         x = str(input("\nEnter command: "))
@@ -188,6 +193,9 @@ def main():
         elif x == 'e':
             oe = not oe
             prog.output_enable(oe)
+        elif x == 'w':
+            we = not we
+            prog.write_enable(we)
         elif x == '2':
             set_addr(prog)
         elif x == '3':
