@@ -10,7 +10,14 @@ GPIO.setwarnings(False)
 class EEPROMProgrammer(object):
 
     DATA_BIT_LEN = 8 
-    ADDR_BIT_LEN = 10 
+    ADDR_BIT_LEN = 10
+    T_WP = 250
+    T_AS = 20
+    T_AH = 200
+    T_OES = 30
+    T_DS = 100
+    T_DH = 20
+    T_DL = 100
 
     @property 
     def address_pins(self):
@@ -78,16 +85,23 @@ class EEPROMProgrammer(object):
         GPIO.output(self.we, status)
 
     def pulse_write(self):
+        # save the current OE state
         oe_state = self.oe_enabled
-        self.output_enable(False)
 
+        # Make sure the address and data pins are outputting the correct values
+        # to the GPIO header.
         self.update()
-        usleep(150)
-        
-        GPIO.output(self.oe, 1)
-        GPIO.output(self.we, 0)
-        usleep(250)
-        GPIO.output(self.we, 1)
+
+        # Disable the OE flag and sleep for min time
+        self.output_enable(False)
+        usleep(self.T_OES)
+
+        # Set the WE flag to 0 (active low) for at least 250 ns
+        self.write_enable(True)
+        usleep(self.T_WP)
+        self.write_enable(False)
+
+        # Return the OE flag to it's original state
         self.output_enable(oe_state)
     
     def set_address(self, addr):  # type: (list) -> None
@@ -113,11 +127,11 @@ class EEPROMProgrammer(object):
             GPIO.output(self.data_pins[str(i)], bit)
 
     def update(self):
-        for i, bit in enumerate(self.bits):
-            GPIO.output(self.data_pins[str(i)], bit)
-
         for i, addr in enumerate(self.address):
             GPIO.output(self.address_pins[str(i)], addr)
+
+        for i, bit in enumerate(self.bits):
+            GPIO.output(self.data_pins[str(i)], bit)
 
     def cleanup(self):
         GPIO.cleanup()
@@ -160,7 +174,6 @@ def set_all(prog):
     for i in range(0, 1024):
         prog.set_address(i)
         prog.set_bits(data)
-        prog.update()
         prog.pulse_write()
 
 
