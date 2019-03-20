@@ -9,8 +9,10 @@ GPIO.setwarnings(False)
 
 class EEPROMProgrammer(object):
 
-    @property
-    def address_pins(self):
+    DATA_BIT_LEN = 8 
+    ADDR_BIT_LEN = 10 
+
+    @property def address_pins(self):
         return {
             '0': 9,
             '1': 10,
@@ -40,6 +42,7 @@ class EEPROMProgrammer(object):
 
     @property
     def data(self):
+        # alias for `self.bits`
         return self.bits
 
     def __init__(self):
@@ -57,8 +60,8 @@ class EEPROMProgrammer(object):
 
         GPIO.output([self.we, self.oe], 1)
 
-        self.bits = list('00000000')
-        self.address = ['0'] * 10
+        self.bits = ['0'] * self.DATA_BIT_LEN
+        self.address = ['0'] * self.ADDR_BIT_LEN
 
         GPIO.setup(list(self.address_pins.values()), GPIO.OUT, initial=0)
         GPIO.setup(list(self.data_pins.values()), GPIO.OUT, initial=0)
@@ -81,6 +84,7 @@ class EEPROMProgrammer(object):
     
     def set_address(self, addr):  # type: (list) -> None
         addr = self._tobinary(addr, size=10)
+        addr = addr[::-1]  # bits need to go in reverse order when outputting to GPIO...
         for i, bit in enumerate(addr): 
             self.address[i] = bit
             GPIO.output(self.address_pins[str(i)], bit)
@@ -92,6 +96,8 @@ class EEPROMProgrammer(object):
     def set_bits(self, bits):  # type: (list) -> None
         if isinstance(bits, str):
             bits = list(map(int, bits))
+
+        bits = bits[::-1]  # bits need to go in reverse order when outputting to GPIO...
 
         for i, bit in enumerate(bits):
             bit = 0 if not bit else 1
