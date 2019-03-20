@@ -111,10 +111,6 @@ class EEPROMProgrammer(object):
             self.address[i] = bit
             GPIO.output(self.address_pins[str(i)], bit)
 
-    def set_data(self, data):
-        # alias function for `set_bits()`
-        return self.set_bits(data)
-
     def set_bits(self, bits):  # type: (list) -> None
         if isinstance(bits, str):
             bits = list(map(int, bits))
@@ -142,11 +138,10 @@ class EEPROMProgrammer(object):
             return list(map(int, s))
         return s
 
-    def _tobinary(self, x, size=10):  # type: (int) -> list
+    def _tobinary(self, x, size=8):  # type: (int) -> list
         if size == 10:
             return self._tolist('{0:010b}'.format(x))
-        else:
-            return self._tolist('{0:08b}'.format(x))
+        return self._tolist('{0:08b}'.format(x))
     
     def read(self, address):
         address = self._tolist(address)
@@ -175,6 +170,7 @@ def set_all(prog):
         prog.set_address(i)
         prog.set_bits(data)
         prog.pulse_write()
+        usleep(500)
 
 
 def main():
@@ -231,7 +227,7 @@ def main():
         elif x == 'p':
             set_data(prog)
             set_addr(prog)
-            prog.update()
+            # prog.update()
             prog.pulse_write()
         elif x == 's':
             set_all(prog)
