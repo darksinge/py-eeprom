@@ -67,12 +67,15 @@ class EEPROMProgrammer(object):
         GPIO.setup(list(self.address_pins.values()), GPIO.OUT, initial=0)
         GPIO.setup(list(self.data_pins.values()), GPIO.OUT, initial=0)
 
+        self.output_enable(False)
+
     def output_enable(self, enable=True):
-        status = 1 if enable else 0
+        status = 0 if enable else 1  # active low signal
         GPIO.output(self.oe, status)
 
     def pulse_write(self):
         oe_state = self.oe_enabled
+        self.output_enable(False)
 
         self.update()
         usleep(150)
@@ -174,13 +177,17 @@ def main():
         print("\t5) Print Current Address")
         print("\to) Print Output")
         print("\ts) Set All")
-        print("\te) Exit")
+        print("\te) Toggle Output Enable")
+        print("\tq) Quit")
         
         x = str(input("\nEnter command: "))
         print("")
 
         if x == '1':
             set_data(prog)
+        elif x == 'e':
+            oe = not oe
+            prog.output_enable(oe)
         elif x == '2':
             set_addr(prog)
         elif x == '3':
@@ -207,7 +214,7 @@ def main():
             prog.pulse_write()
         elif x == 's':
             set_all(prog)
-        elif x == 'e':
+        elif x == 'q':
             done = True
         else:
             print("Error: Invalid menu choice '%s'\n" % x)
