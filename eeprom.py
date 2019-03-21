@@ -49,18 +49,27 @@ class EEPROMProgrammer(object):
         }
 
     @property
-    def data(self):
-        # alias for `self.bits`
-        return self.bits
+    def we(self):
+        return 6
+
+    @property
+    def oe(self):
+        return 21
 
     def __init__(self):
-        self.we = 25
-        self.oe = 21
         self.oe_enabled = self.we_enabled = False
 
         self.on_init()
 
     def on_init(self):
+        # some sanity checking
+        addrpins = self.address_pins.values()
+        datapins = self.data_pins.values()
+        for pin in datapins:
+            assert value not in addrpins
+        assert self.we not in addrpins and self.we not in datapins
+        assert self.oe not in addrpins and self.oe not in datapins
+
         GPIO.setmode(GPIO.BCM)
 
         GPIO.setup(self.we, GPIO.OUT)
@@ -68,8 +77,8 @@ class EEPROMProgrammer(object):
 
         GPIO.output([self.we, self.oe], 1)
 
-        self.bits = ['0'] * self.DATA_BIT_LEN
-        self.address = ['0'] * self.ADDR_BIT_LEN
+        self.bits = [0 for _ in range(self.DATA_BIT_LEN)]
+        self.address = [0 for _ in range(self.ADDR_BIT_LEN)]
 
         GPIO.setup(list(self.address_pins.values()), GPIO.OUT, initial=0)
         GPIO.setup(list(self.data_pins.values()), GPIO.OUT, initial=0)
